@@ -44,30 +44,58 @@
     </p>
 
     <form onsubmit="login(event)">
-        <input class="form-control mb-3" placeholder="Username" required>
+    <input type="text" class="form-control mb-3" placeholder="Username" required>
 
-        <input type="password" class="form-control mb-3" placeholder="Password" required>
+    <input type="password" class="form-control mb-3" placeholder="Password" required>
 
-        <select class="form-control mb-3">
-            <option>Principal</option>
-            <option>Exam Controller</option>
-            <option>Admin</option>
-        </select>
+    <select class="form-control mb-3">
+        <option>Principal</option>
+        <option>Exam Controller</option>
+        <option>Admin</option>
+    </select>
 
-        <button class="btn btn-login w-100 text-white">
-            Login
-        </button>
-    </form>
+    <button class="btn btn-login w-100 text-white">
+        Login
+    </button>
+</form>
 
 </div>
 
 <script>
+
+
 function login(e){
     e.preventDefault();
-    alert("Login successful (Demo Mode)");
-    window.location="dashboard.html"; // later connect real backend
+
+    const username = document.querySelector('input[type="text"]').value;
+    const password = document.querySelector('input[type="password"]').value;
+
+    fetch("http://127.0.0.1:8000/api/login/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username: username,
+            password: password
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success"){
+            alert("Login successful");
+            window.location = "dashboard.html";
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error(error);
+        alert("Server error");
+    });
 }
 </script>
+
 
 </body>
 </html>
