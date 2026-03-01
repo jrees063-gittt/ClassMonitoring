@@ -1,78 +1,68 @@
-from django.shortcuts import render
-
-# Create your views here.
-from django.contrib.auth import authenticate, login
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-import json
-
-from requests import Response
-
-from monitoring.models import Camera
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Camera, Alert
-from .serializers import CameraSerializer, AlertSerializer
+from .utils import calculate_risk
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
-
-@csrf_exempt
-def login_view(request):
-
-    if request.method != "POST":
-        return JsonResponse({"error": "POST required"}, status=405)
-
-    try:
-        data = json.loads(request.body)
-    except:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-    username = data.get("username")
-    password = data.get("password")
-
-    user = authenticate(request, username=username, password=password)
-
-    if user:
-        login(request, user)
-        return JsonResponse({"status": "success"})
-    else:
-        return JsonResponse({"error": "Invalid credentials"}, status=401)
-
-# Get all cameras
-@api_view(["GET"])
-def camera_list(request):
-    cameras = Camera.objects.all()
-    serializer = CameraSerializer(cameras, many=True)
-    return Response(serializer.data)
-
-
-# Get all alerts
-@api_view(["GET"])
-def alert_list(request):
-    alerts = Alert.objects.all().order_by("-timestamp")
-    serializer = AlertSerializer(alerts, many=True)
-    return Response(serializer.data)
-
-
-# AI system sends alert here
 @api_view(["POST"])
 def create_alert(request):
+    student = request.data.get("student_name")
+    hall = request.data.get("hall")
+    violation = request.data.get("violation_type")
+    points = int(request.data.get("risk_points", 1))
 
-    serializer = AlertSerializer(data=request.data)
+    Alert.objects.create(
+        student_name=student,
+        hall=hall,
+        violation_type=violation,
+        risk_points=points
+    )
 
-    if serializer.is_valid():
-        serializer.save()
+    camera = Camera.objects.filter(hall_name=hall).first()
 
-        # Update camera risk automatically
-        hall = request.data.get("hall")
-        violation = request.data.get("violation_type")
+    if camera:
+        camera.risk_score += points
+        camera.risk_level = calculate_risk(camera.risk_score)
+        camera.last_violation = violation
+        camera.save()
 
-        camera = Camera.objects.filter(hall_name=hall).first()
-        if camera:
-            camera.risk_level = "high"
-            camera.status_message = violation
-            camera.save()
+    # 🔥 WebSocket broadcast
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "dashboard",
+        {
+            "type": "send_update",
+        }
+    )
 
-        return Response({"status": "Alert Created"})
+    return Response({"status": "Alert Created"})
 
-    return Response(serializer.errors, status=400)
+
+@api_view(["GET"])
+def dashboard_data(request):
+    cameras = Camera.objects.all()
+    alerts = Alert.objects.order_by("-timestamp")[:10]
+
+    return Response({
+        "cameras": [
+            {
+                "hall": c.hall_name,
+                "camera": c.camera_name,
+                "risk_level": c.risk_level,
+                "risk_score": c.risk_score,
+                "last_violation": c.last_violation
+            }
+            for c in cameras
+        ],
+        "alerts": [
+            {
+                "student": a.student_name,
+                "hall": a.hall,
+                "violation": a.violation_type,
+                "time": a.timestamp.strftime("%H:%M:%S")
+            }
+            for a in alerts
+        ]
+    })

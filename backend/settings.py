@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'monitoring',
     'corsheaders',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -127,3 +128,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+ASGI_APPLICATION = "backend.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
