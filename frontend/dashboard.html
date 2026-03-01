@@ -41,6 +41,33 @@
             background: #475569;
             transform: scale(1.02);
         }
+
+        .camera-box {
+            position: relative;
+        }
+
+        .risk {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .low {
+            background: green;
+        }
+
+        .medium {
+            background: orange;
+        }
+
+        .high {
+            background: red;
+        }
     </style>
 </head>
 
@@ -60,6 +87,7 @@
                     <div class="col-md-6">
                         <div class="camera-box" onclick="openCamera('Hall A - Cam 1', 'Normal')">
                             <h6>Hall A - Cam 1</h6>
+                            <span class="risk low">Low Risk</span>
                             <img src="https://via.placeholder.com/400x200" class="img-fluid">
                             <p>Status: Normal</p>
                         </div>
@@ -68,6 +96,7 @@
                     <div class="col-md-6">
                         <div class="camera-box red" onclick="openCamera('Hall B - Cam 1','High Risk')">
                             <h6>Hall B - Cam 1</h6>
+                            <span class="high low">High Risk</span>
                             <img src="https://via.placeholder.com/400x200" class="img-fluid">
                             <p style="color:red;">⚠ Looking Away Detected</p>
                         </div>
@@ -76,6 +105,7 @@
                     <div class="col-md-6">
                         <div class="camera-box" onclick="openCamera('Hall C - Cam 2','Normal')">
                             <h6>Hall C - Cam 2</h6>
+                            <span class="risk low">Low Risk</span>
                             <img src="https://via.placeholder.com/400x200" class="img-fluid">
                             <p>Status: Normal</p>
                         </div>
@@ -84,6 +114,7 @@
                     <div class="col-md-6">
                         <div class="camera-box" onclick="openCamera('Hall D - Cam 1','Normal')">
                             <h6>Hall D - Cam 1</h6>
+                            <span class="risk low">Low Risk</span>
                             <img src="https://via.placeholder.com/400x200" class="img-fluid">
                             <p>Status: Normal</p>
                         </div>
@@ -171,6 +202,25 @@
             var myModal = new bootstrap.Modal(document.getElementById('alertModal'));
             myModal.show();
         }
+    </script>
+
+    <script>
+        function updateRisk() {
+            const risks = ["low", "medium", "high"];
+
+            document.querySelectorAll(".camera-box").forEach(cam => {
+                let r = risks[Math.floor(Math.random() * 3)];
+
+                let badge = cam.querySelector(".risk");
+
+                if (badge) {
+                    badge.className = "risk " + r;
+                    badge.innerText = r.toUpperCase() + " RISK";
+                }
+            });
+        }
+
+        setInterval(updateRisk, 5000);
     </script>
 </body>
 
