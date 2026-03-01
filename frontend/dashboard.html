@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AI Exam Monitoring Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+        }
+
+        .camera-box {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .alert-box {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 15px;
+            height: 80vh;
+            overflow: auto;
+        }
+
+        .red {
+            border: 3px solid red;
+        }
+
+        .alert-item {
+            background: #334155;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .alert-item:hover {
+            background: #475569;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container-fluid p-3">
+
+        <h2>🎓 Smart Exam Monitoring Dashboard</h2>
+
+        <div class="row mt-3">
+
+            <!-- Camera Grid -->
+            <div class="col-md-8">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="camera-box" onclick="openCamera('Hall A - Cam 1', 'Normal')">
+                            <h6>Hall A - Cam 1</h6>
+                            <img src="https://via.placeholder.com/400x200" class="img-fluid">
+                            <p>Status: Normal</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="camera-box red" onclick="openCamera('Hall B - Cam 1','High Risk')">
+                            <h6>Hall B - Cam 1</h6>
+                            <img src="https://via.placeholder.com/400x200" class="img-fluid">
+                            <p style="color:red;">⚠ Looking Away Detected</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="camera-box" onclick="openCamera('Hall C - Cam 2','Normal')">
+                            <h6>Hall C - Cam 2</h6>
+                            <img src="https://via.placeholder.com/400x200" class="img-fluid">
+                            <p>Status: Normal</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="camera-box" onclick="openCamera('Hall D - Cam 1','Normal')">
+                            <h6>Hall D - Cam 1</h6>
+                            <img src="https://via.placeholder.com/400x200" class="img-fluid">
+                            <p>Status: Normal</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Alerts Panel -->
+            <div class="col-md-4">
+                <div class="alert-box">
+
+                    <h4>🚨 Live Alerts</h4>
+                    <hr>
+
+                    <div class="alert-item p-2 mb-2" onclick="openAlert('Rahul','Hall B','Looking Away')">
+                        <b>10:32</b> Rahul – Hall B
+                        <span class="badge bg-danger float-end">Looking Away</span>
+                    </div>
+
+                    <div class="alert-item p-2 mb-2" onclick="openAlert('Neha','Hall C','Multiple Faces')">
+                        <b>10:40</b> Neha – Hall C
+                        <span class="badge bg-warning text-dark float-end">Multiple Faces</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="modal fade" id="cameraModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cameraTitle">Camera View</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="https://via.placeholder.com/800x400" class="img-fluid rounded">
+                    <h5 id="riskLevel"></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function openCamera(title, status) {
+            document.getElementById("cameraTitle").innerText = title;
+            document.getElementById("riskLevel").innerText = "Risk Level: " + status;
+
+            var myModal = new bootstrap.Modal(document.getElementById('cameraModal'));
+            myModal.show();
+        }
+    </script>
+
+    <div class="modal fade" id="alertModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title">Violation Evidence</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body text-center">
+                    <h5 id="studentName"></h5>
+                    <p id="studentInfo"></p>
+
+                    <img src="https://via.placeholder.com/500x300" class="img-fluid rounded mb-3">
+
+                    <p style="color:red;">⚠ Evidence Screenshot</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAlert(name, hall, action) {
+            document.getElementById("studentName").innerText = name;
+            document.getElementById("studentInfo").innerText =
+                "Hall: " + hall + " | Violation: " + action;
+
+            var myModal = new bootstrap.Modal(document.getElementById('alertModal'));
+            myModal.show();
+        }
+    </script>
+</body>
+
+</html>
