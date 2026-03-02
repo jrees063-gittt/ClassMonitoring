@@ -14,4 +14,5 @@ from . import views
 urlpatterns = [
     path("alerts/create/", views.create_alert),
     path("dashboard/", views.dashboard_data),
+    path("analytics/", views.analytics),
 ]

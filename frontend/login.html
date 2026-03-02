@@ -70,7 +70,7 @@ function login(e){
     const username = document.querySelector('input[type="text"]').value;
     const password = document.querySelector('input[type="password"]').value;
 
-    fetch("http://127.0.0.1:8000/api/login/", {
+    fetch("http://127.0.0.1:8000/api/token/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -80,18 +80,14 @@ function login(e){
             password: password
         })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-        if(data.status === "success"){
-            alert("Login successful");
+        if(data.access){
+            localStorage.setItem("access", data.access);
             window.location = "dashboard.html";
         } else {
-            alert(data.message);
+            alert("Invalid credentials");
         }
-    })
-    .catch(error => {
-        console.error(error);
-        alert("Server error");
     });
 }
 </script>

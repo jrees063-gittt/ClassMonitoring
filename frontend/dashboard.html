@@ -52,6 +52,7 @@
         .medium { background: orange; }
         .high { background: red; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -76,24 +77,36 @@
                 <hr>
             </div>
         </div>
+        <div class="mt-4">
+    <h4>📊 Risk Analytics</h4>
+    <canvas id="riskChart"></canvas>
+</div>
 
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 function loadDashboard() {
-    fetch("http://127.0.0.1:8000/api/dashboard/")
-    .then(res => res.json())
+    fetch("http://127.0.0.1:8000/api/dashboard/", {
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("access")
+        }
+    })
+    .then(res => {
+        if(res.status === 401){
+            alert("Session expired. Please login again.");
+            window.location = "login.html";
+        }
+        return res.json();
+    })
     .then(data => {
 
-        // 🔵 Update Cameras
         const camContainer = document.getElementById("cameraContainer");
         camContainer.innerHTML = "";
 
         data.cameras.forEach(cam => {
-
             let borderClass = cam.risk_level === "High" ? "red" : "";
 
             camContainer.innerHTML += `
@@ -111,7 +124,6 @@ function loadDashboard() {
             `;
         });
 
-        // 🔴 Update Alerts
         const alertContainer = document.getElementById("alertContainer");
         alertContainer.innerHTML = "<h4>🚨 Live Alerts</h4><hr>";
 
@@ -125,9 +137,9 @@ function loadDashboard() {
                 </div>
             `;
         });
+
     });
 }
-
 // 🔥 WebSocket Real-Time Connection
 const socket = new WebSocket("ws://127.0.0.1:8000/ws/dashboard/");
 
@@ -143,9 +155,46 @@ socket.onopen = function() {
 socket.onerror = function(error) {
     console.log("WebSocket Error:", error);
 };
+function loadAnalytics() {
+    fetch("http://127.0.0.1:8000/api/analytics/", {
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("access")
+        }
+    })
+    .then(res => {
+        if(res.status === 401){
+            alert("Session expired. Please login again.");
+            window.location = "login.html";
+        }
+        return res.json();
+    })
+    .then(data => {
+
+        const ctx = document.getElementById("riskChart");
+
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: ["High Risk", "Medium Risk", "Low Risk"],
+                datasets: [{
+                    label: "Risk Distribution",
+                    data: [
+                        data.high_risk,
+                        data.medium_risk,
+                        data.low_risk
+                    ],
+                    backgroundColor: ["red", "orange", "green"]
+                }]
+            }
+        });
+
+    });
+}
+
 
 // Initial load
 loadDashboard();
+loadAnalytics();
 </script>
 
 </body>

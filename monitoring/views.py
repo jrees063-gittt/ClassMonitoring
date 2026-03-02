@@ -4,6 +4,16 @@ from .models import Camera, Alert
 from .utils import calculate_risk
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
+
+# 🔥 Risk Scoring Map (put this above the function)
+RISK_MAP = {
+    "Looking Away": 2,
+    "Multiple Faces": 5,
+    "Phone Detected": 10,
+    "Head Down Long": 3
+}
 
 
 @api_view(["POST"])
@@ -11,8 +21,11 @@ def create_alert(request):
     student = request.data.get("student_name")
     hall = request.data.get("hall")
     violation = request.data.get("violation_type")
-    points = int(request.data.get("risk_points", 1))
 
+    # 🔥 Get risk points from map
+    points = RISK_MAP.get(violation, 1)
+
+    # Save alert
     Alert.objects.create(
         student_name=student,
         hall=hall,
@@ -20,6 +33,7 @@ def create_alert(request):
         risk_points=points
     )
 
+    # Update camera risk
     camera = Camera.objects.filter(hall_name=hall).first()
 
     if camera:
@@ -41,6 +55,7 @@ def create_alert(request):
 
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def dashboard_data(request):
     cameras = Camera.objects.all()
     alerts = Alert.objects.order_by("-timestamp")[:10]
@@ -66,3 +81,19 @@ def dashboard_data(request):
             for a in alerts
         ]
     })
+
+from django.utils import timezone
+from datetime import timedelta
+
+@api_view(["GET"])
+def analytics(request):
+    today = timezone.now() - timedelta(days=1)
+
+    total_alerts = Alert.objects.filter(timestamp__gte=today).count()
+    high_risk = Camera.objects.filter(risk_level="High").count()
+
+    return Response({
+        "total_alerts": total_alerts,
+        "high_risk_halls": high_risk
+    })
+
